@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(uuid())
+  name         String
+  email        String    @unique
+  password_hash String
+  created_at   DateTime  @default(now())
+
+  projects     Project[]
+}
+
+model Project {
+  id          String     @id @default(uuid())
+  name        String
+  description String?
+  user_id     String
+  created_at  DateTime   @default(now())
+
+  user        User       @relation(fields: [user_id], references: [id])
+  endpoints   Endpoint[]
+}
+
+model Endpoint {
+  id               String          @id @default(uuid())
+  project_id       String
+  name             String
+  url              String
+  method           String          @default("GET")
+  interval_seconds Int             @default(60)
+  timeout_seconds  Int             @default(5)
+  is_active        Boolean         @default(true)
+  alert_active     Boolean         @default(false)
+  created_at       DateTime        @default(now())
+
+  project          Project         @relation(fields: [project_id], references: [id])
+  monitor_results  MonitorResult[]
+  alerts           Alert[]
+}
+
+model MonitorResult {
+  id            String    @id @default(uuid())
+  endpoint_id   String
+  status_code   Int?
+  response_time Float?
+  success       Boolean
+  checked_at    DateTime  @default(now())
+
+  endpoint      Endpoint  @relation(fields: [endpoint_id], references: [id])
+}
+
+model Alert {
+  id          String    @id @default(uuid())
+  endpoint_id String
+  message     String?
+  created_at  DateTime  @default(now())
+
+  endpoint    Endpoint  @relation(fields: [endpoint_id], references: [id])
+}
