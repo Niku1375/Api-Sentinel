@@ -1,9 +1,9 @@
-FROM python:3.11
-
+FROM node:20-alpine
 WORKDIR /app
-
-COPY . .
-
-RUN pip install -r requirements.txt
-
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]  
+COPY package*.json ./
+COPY prisma ./prisma/
+RUN npm install
+RUN npx prisma generate
+COPY src ./src/
+EXPOSE 8000
+CMD ["node", "src/server.js"]
